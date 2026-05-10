@@ -16,6 +16,7 @@ build/
 **/cofig.py   # or just exclude sensitive lines
 **/data/
 #
+engineeing guide.html
 
 # IDE folders
 .vscode/
