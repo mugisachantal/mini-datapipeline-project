@@ -11,28 +11,31 @@ st.title("🌐 Global Patent Intelligence Dashboard")
 @st.cache_data
 def load_data():
     # 1. Get the absolute path of the directory where dashboard.py is located
+    # On Streamlit Cloud, this will be: /mount/src/mini-datapipeline-project/scripts/
     current_dir = os.path.dirname(os.path.abspath(__file__))
     
-    # 2. Point directly to the reports folder (which is in the same folder as the script)
-    # This works regardless of whether the folder is 'scripts/reports' or just 'reports'
+    # 2. Point to the 'reports' folder that is inside 'scripts'
     reports_dir = os.path.join(current_dir, "reports")
     
     report_path = os.path.join(reports_dir, "patent_report.json")
     cluster_summary_path = os.path.join(reports_dir, "cluster_summary.csv")
     cluster_trends_path = os.path.join(reports_dir, "cluster_trends.csv")
 
-    # 3. Use these absolute paths to open the files
+    # 3. Diagnostic check (helps if it fails again)
+    if not os.path.exists(report_path):
+        raise FileNotFoundError(f"Missing file at {report_path}. "
+                                f"Current directory contents: {os.listdir(current_dir)}")
+
+    # 4. Open and load
     with open(report_path, "r") as f:
-    
         report = json.load(f)
     
     df_trends = pd.DataFrame(report["year_trends"])
     
-    # Try loading cluster data if the ML script has been run
     try:
-        df_clusters = pd.read_csv("reports/cluster_summary.csv")
-        df_cluster_trends = pd.read_csv("reports/cluster_trends.csv")
-    except FileNotFoundError:
+        df_clusters = pd.read_csv(cluster_summary_path)
+        df_cluster_trends = pd.read_csv(cluster_trends_path)
+    except Exception:
         df_clusters, df_cluster_trends = None, None
 
     return report, df_trends, df_clusters, df_cluster_trends
