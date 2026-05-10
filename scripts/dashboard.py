@@ -3,7 +3,6 @@ import pandas as pd
 import json
 import plotly.express as px
 import os
-
 # --- Page Config ---
 st.set_page_config(page_title="Patent Intelligence Dashboard", layout="wide")
 st.title("🌐 Global Patent Intelligence Dashboard")
@@ -11,17 +10,18 @@ st.title("🌐 Global Patent Intelligence Dashboard")
 # --- Load Data ---
 @st.cache_data
 def load_data():
-    # Get the directory where dashboard.py is located
+    # 1. Get the absolute path of the directory where dashboard.py is located
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    # Go up one level to the project root
-    root_dir = os.path.dirname(current_dir)
     
-    # Construct the path to the reports folder
-    report_path = os.path.join(root_dir, "reports", "patent_report.json")
-    cluster_summary_path = os.path.join(root_dir, "reports", "cluster_summary.csv")
-    cluster_trends_path = os.path.join(root_dir, "reports", "cluster_trends.csv")
+    # 2. Point directly to the reports folder (which is in the same folder as the script)
+    # This works regardless of whether the folder is 'scripts/reports' or just 'reports'
+    reports_dir = os.path.join(current_dir, "reports")
+    
+    report_path = os.path.join(reports_dir, "patent_report.json")
+    cluster_summary_path = os.path.join(reports_dir, "cluster_summary.csv")
+    cluster_trends_path = os.path.join(reports_dir, "cluster_trends.csv")
 
-    # Now open using the full path
+    # 3. Use these absolute paths to open the files
     with open(report_path, "r") as f:
     
         report = json.load(f)
