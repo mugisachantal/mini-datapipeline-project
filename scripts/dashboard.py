@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import json
 import plotly.express as px
+import os
 
 # --- Page Config ---
 st.set_page_config(page_title="Patent Intelligence Dashboard", layout="wide")
@@ -10,7 +11,19 @@ st.title("🌐 Global Patent Intelligence Dashboard")
 # --- Load Data ---
 @st.cache_data
 def load_data():
-    with open("reports/patent_report.json", "r") as f:
+    # Get the directory where dashboard.py is located
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Go up one level to the project root
+    root_dir = os.path.dirname(current_dir)
+    
+    # Construct the path to the reports folder
+    report_path = os.path.join(root_dir, "reports", "patent_report.json")
+    cluster_summary_path = os.path.join(root_dir, "reports", "cluster_summary.csv")
+    cluster_trends_path = os.path.join(root_dir, "reports", "cluster_trends.csv")
+
+    # Now open using the full path
+    with open(report_path, "r") as f:
+    
         report = json.load(f)
     
     df_trends = pd.DataFrame(report["year_trends"])
