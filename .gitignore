@@ -1,0 +1,27 @@
+cat > .gitignore << EOF
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.so
+.Python
+env/
+venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Database connection string (if stored in a file)
+**/cofig.py   # or just exclude sensitive lines
+**/data/
+#
+
+# IDE folders
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+EOF

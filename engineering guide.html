@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patent Pipeline — Big Data Engineering Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f13;
+    --surface: #13161d;
+    --border: #1f2430;
+    --accent: #00e5a0;
+    --accent2: #4f9eff;
+    --accent3: #ff6b4a;
+    --warn: #f5c542;
+    --text: #cdd6f4;
+    --muted: #6c7086;
+    --code-bg: #0a0c10;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.7; }
+
+  .hero {
+    background: linear-gradient(135deg, #0d0f13 0%, #0a1628 50%, #0d130f 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 40px 40px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -50%; right: -20%;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,229,160,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag { font-size: 11px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 16px; }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(28px, 4vw, 48px); font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 16px; }
+  h1 span { color: var(--accent); }
+  .hero-sub { color: var(--muted); max-width: 640px; font-size: 13px; }
+  .hero-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+  .badge { background: var(--surface); border: 1px solid var(--border); padding: 4px 12px; border-radius: 4px; font-size: 12px; color: var(--muted); }
+  .badge strong { color: var(--accent); }
+  .badge.red strong { color: var(--accent3); }
+
+  .why-pg {
+    background: linear-gradient(90deg, rgba(255,107,74,0.08) 0%, transparent 100%);
+    border: 1px solid rgba(255,107,74,0.3);
+    border-radius: 10px;
+    padding: 24px 28px;
+    margin: 32px 40px;
+  }
+  .why-pg h2 { font-family: 'Syne', sans-serif; font-size: 16px; color: var(--accent3); margin-bottom: 12px; }
+  .why-pg table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .why-pg td, .why-pg th { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .why-pg th { color: var(--muted); font-size: 11px; letter-spacing: 1px; text-align: left; }
+  .why-pg td:first-child { color: var(--text); font-weight: 600; }
+  .why-pg .no { color: var(--accent3); }
+  .why-pg .yes { color: var(--accent); }
+
+  .timeline { padding: 20px 40px; max-width: 1040px; margin: 0 auto; }
+  .phase { display: grid; grid-template-columns: 150px 1fr; gap: 0 32px; margin-bottom: 8px; }
+  .phase-label { text-align: right; padding-top: 20px; padding-right: 32px; border-right: 2px solid var(--border); position: relative; }
+  .phase-label::after { content: ''; position: absolute; right: -7px; top: 26px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
+  .phase-num { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 2px; }
+  .phase-time { font-size: 11px; color: var(--muted); }
+  .phase-body { padding: 16px 0 40px; }
+  .phase-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+  .phase-desc { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 16px 0; }
+  .code-header { background: var(--surface); padding: 8px 16px; font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+  .code-header span { color: var(--accent2); font-weight: 600; }
+  pre { padding: 20px; overflow-x: auto; font-size: 12.5px; line-height: 1.65; }
+
+  .k { color: #c792ea; }
+  .s { color: #c3e88d; }
+  .c { color: #546e7a; font-style: italic; }
+  .f { color: #82aaff; }
+  .n { color: #ffcb6b; }
+  .t { color: var(--accent); }
+  .sql-k { color: #c792ea; font-weight: 600; }
+  .sql-f { color: #82aaff; }
+  .sql-s { color: #c3e88d; }
+  .sql-c { color: #546e7a; font-style: italic; }
+
+  h3 { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin: 24px 0 10px; }
+
+  .callout { border-left: 3px solid var(--warn); background: rgba(245,197,66,0.06); padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 14px 0; font-size: 13px; color: var(--warn); }
+  .callout.info { border-color: var(--accent2); background: rgba(79,158,255,0.06); color: var(--accent2); }
+  .callout.success { border-color: var(--accent); background: rgba(0,229,160,0.06); color: var(--accent); }
+  .callout.danger { border-color: var(--accent3); background: rgba(255,107,74,0.06); color: var(--accent3); }
+
+  .tree { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; font-size: 13px; line-height: 2.1; }
+  .tree .dir { color: var(--accent2); font-weight: 600; }
+  .tree .cm { color: var(--muted); }
+
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; margin: 10px 0; }
+  .step h4 { font-family: 'Syne', sans-serif; font-size: 14px; color: #fff; margin-bottom: 6px; }
+  .step p { color: var(--muted); font-size: 13px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media (max-width: 700px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .pill { display: inline-block; background: rgba(0,229,160,0.1); color: var(--accent); border: 1px solid rgba(0,229,160,0.3); padding: 2px 10px; border-radius: 20px; font-size: 11px; margin: 2px; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+  footer { border-top: 1px solid var(--border); padding: 24px; text-align: center; font-size: 12px; color: var(--muted); margin-top: 60px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-tag">// big data engineering guide · v2</div>
+  <h1>Global Patent Intelligence<br><span>Data Pipeline</span></h1>
+  <p class="hero-sub">A production-grade engineering guide for handling tens of millions of patent records using PostgreSQL, COPY-based bulk loading, and chunked pandas processing. Built for a Big Data course unit.</p>
+  <div class="hero-meta">
+    <div class="badge"><strong>5h</strong> active work</div>
+    <div class="badge"><strong>PostgreSQL</strong> — not SQLite</div>
+    <div class="badge">Python · pandas · psycopg2 · COPY</div>
+    <div class="badge red"><strong>Millions</strong> of rows per table</div>
+  </div>
+</div>
+
+<!-- Why PostgreSQL -->
+<div class="why-pg">
+  <h2>⚠ Why PostgreSQL — Not SQLite</h2>
+  <table>
+    <tr><th>Capability</th><th>SQLite</th><th>PostgreSQL</th></tr>
+    <tr><td>Rows per table</td><td class="no">Degrades past ~1M rows</td><td class="yes">Handles 100M+ rows natively</td></tr>
+    <tr><td>Concurrent writes</td><td class="no">Single writer only</td><td class="yes">Full MVCC concurrency</td></tr>
+    <tr><td>Bulk loading</td><td class="no">row-by-row INSERT</td><td class="yes">COPY command — 10–100× faster</td></tr>
+    <tr><td>Indexes on large tables</td><td class="no">Slow to build and query</td><td class="yes">B-tree, partial, expression indexes</td></tr>
+    <tr><td>Window functions at scale</td><td class="no">Very slow on millions</td><td class="yes">Optimized parallel execution</td></tr>
+    <tr><td>Query planner</td><td class="no">Basic</td><td class="yes">Cost-based with statistics</td></tr>
+    <tr><td>Big Data credibility</td><td class="no">Not a Big Data tool</td><td class="yes">Industry standard for analytics</td></tr>
+  </table>
+</div>
+
+<div class="timeline">
+
+  <!-- PHASE 0 -->
+  <div class="phase">
+    <div class="phase-label">
+      <div class="phase-num">PHASE 0</div>
+      <div class="phase-time">~25 min</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-title">Environment & PostgreSQL Setup</div>
+      <div class="phase-desc">Install PostgreSQL, create the database and user, set up the Python environment, and scaffold the project.</div>
+
+      <h3>1 — Install PostgreSQL</h3>
+      <div class="code-block">
+        <div class="code-header"><span>bash</span> — install on your OS</div>
+        <pre><span class="c"># Ubuntu / WSL (Windows Subsystem for Linux)</span>
+sudo apt update && sudo apt install -y postgresql postgresql-contrib
+
+<span class="c"># Mac (Homebrew)</span>
+brew install postgresql@15
+brew services start postgresql@15
+
+<span class="c"># Windows — download installer from:
+# https://www.postgresql.org/download/windows/
+# Install with default settings. pgAdmin is included.</span></pre>
+      </div>
+
+      <h3>2 — Create Database & User</h3>
+      <div class="code-block">
+        <div class="code-header"><span>bash</span> — run in terminal</div>
+        <pre><span class="c"># Start postgres (Linux/WSL)</span>
+sudo service postgresql start
+
+<span class="c"># Open the postgres shell</span>
+sudo -u postgres psql
+
+<span class="c"># Inside psql — run these 4 commands:</span>
+CREATE USER patent_user WITH PASSWORD 'patent_pass';
+CREATE DATABASE patent_db OWNER patent_user;
+GRANT ALL PRIVILEGES ON DATABASE patent_db TO patent_user;
+\q</pre>
+      </div>
+
+      <h3>3 — Project Scaffold & Python Environment</h3>
+      <div class="code-block">
+        <div class="code-header"><span>bash</span></div>
+        <pre>mkdir patent_pipeline && cd patent_pipeline
+mkdir -p data/raw data/clean scripts sql reports
+
+python -m venv venv
+source venv/bin/activate         <span class="c"># Mac/Linux</span>
+venv\Scripts\activate            <span class="c"># Windows</span>
+
+pip install pandas psycopg2-binary tqdm python-dotenv
+
+pip freeze > requirements.txt</pre>
+      </div>
+
+      <h3>4 — Connection Config (.env)</h3>
+      <div class="code-block">
+        <div class="code-header"><span>text</span> — .env  (add this to .gitignore!)</div>
+        <pre>DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=patent_db
+DB_USER=patent_user
+DB_PASS=patent_pass</pre>
+      </div>
+
+      <div class="tree" style="margin-top:16px;">
+        <div><span class="dir">patent_pipeline/</span></div>
+        <div>&nbsp;&nbsp;<span class="dir">data/raw/</span>  <span class="cm"># TSV files from PatentsView</span></div>
+        <div>&nbsp;&nbsp;<span class="dir">data/clean/</span>  <span class="cm"># cleaned CSVs ready for COPY</span></div>
+        <div>&nbsp;&nbsp;<span class="dir">scripts/</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">00_config.py</span>  <span class="cm"># DB connection helper</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">01_download.py</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">02_clean.py</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">03_load_db.py</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">04_analyze.py</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">05_report.py</span></div>
+        <div>&nbsp;&nbsp;<span class="dir">sql/</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">schema.sql</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--text)">queries.sql</span></div>
+        <div>&nbsp;&nbsp;<span class="dir">reports/</span></div>
+        <div>&nbsp;&nbsp;<span style="color:var(--text)">.env</span>  <span class="cm"># DB credentials — NEVER commit this</span></div>
+        <div>&nbsp;&nbsp;<span style="color:var(--text)">.gitignore</span></div>
+        <div>&nbsp;&nbsp;<span style="color:var(--text)">requirements.txt</span></div>
+        <div>&nbsp;&nbsp;<span style="color:var(--text)">README.md</span></div>
+      </div>
+
+      <h3>5 — DB Connection Helper</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Python</span> — scripts/00_config.py</div>
+        <pre><span class="k">import</span> psycopg2
+<span class="k">import</span> os
+<span class="k">from</span> dotenv <span class="k">import</span> load_dotenv
+
+load_dotenv()
+
+<span class="k">def</span> <span class="f">get_conn</span>():
+    <span class="k">return</span> psycopg2.<span class="f">connect</span>(
+        host=os.<span class="f">getenv</span>(<span class="s">"DB_HOST"</span>, <span class="s">"localhost"</span>),
+        port=os.<span class="f">getenv</span>(<span class="s">"DB_PORT"</span>, <span class="s">"5432"</span>),
+        dbname=os.<span class="f">getenv</span>(<span class="s">"DB_NAME"</span>, <span class="s">"patent_db"</span>),
+        user=os.<span class="f">getenv</span>(<span class="s">"DB_USER"</span>, <span class="s">"patent_user"</span>),
+        password=os.<span class="f">getenv</span>(<span class="s">"DB_PASS"</span>, <span class="s">"patent_pass"</span>),
+    )</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-label">
+      <div class="phase-num">PHASE 1</div>
+      <div class="phase-time">~40 min</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-title">Download the Full PatentsView Dataset</div>
+      <div class="phase-desc">Download all 5 bulk TSV files. These are large (several GB compressed). Start the download and let it run while you work on other phases.</div>
+
+      <div class="callout info">
+        Download page: <strong>https://patentsview.org/download/data-download-tables</strong><br>
+        You need these 5 files — download the most recent full versions (not year-by-year):
+        <br><br>
+        <span class="pill">g_patent.tsv</span>
+        <span class="pill">g_inventor_disambiguated.tsv</span>
+        <span class="pill">g_assignee_disambiguated.tsv</span>
+        <span class="pill">g_patent_inventor.tsv</span>
+        <span class="pill">g_patent_assignee.tsv</span>
+      </div>
+
+      <h3>Auto-download script (optional)</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Python</span> — scripts/01_download.py</div>
+        <pre><span class="k">import</span> os, requests
+<span class="k">from</span> tqdm <span class="k">import</span> tqdm
+
+RAW = <span class="s">"data/raw"</span>
+
+<span class="c"># These are the S3 URLs — check patentsview.org if any are outdated</span>
+FILES = {
+    <span class="s">"g_patent.tsv.zip"</span>:
+        <span class="s">"https://s3.amazonaws.com/data.patentsview.org/download/g_patent.tsv.zip"</span>,
+    <span class="s">"g_inventor_disambiguated.tsv.zip"</span>:
+        <span class="s">"https://s3.amazonaws.com/data.patentsview.org/download/g_inventor_disambiguated.tsv.zip"</span>,
+    <span class="s">"g_assignee_disambiguated.tsv.zip"</span>:
+        <span class="s">"https://s3.amazonaws.com/data.patentsview.org/download/g_assignee_disambiguated.tsv.zip"</span>,
+    <span class="s">"g_patent_inventor.tsv.zip"</span>:
+        <span class="s">"https://s3.amazonaws.com/data.patentsview.org/download/g_patent_inventor.tsv.zip"</span>,
+    <span class="s">"g_patent_assignee.tsv.zip"</span>:
+        <span class="s">"https://s3.amazonaws.com/data.patentsview.org/download/g_patent_assignee.tsv.zip"</span>,
+}
+
+<span class="k">def</span> <span class="f">download</span>(url, dest):
+    <span class="k">if</span> os.path.<span class="f">exists</span>(dest):
+        <span class="f">print</span>(<span class="s">f"  skip (exists): </span>{dest}<span class="s">"</span>); <span class="k">return</span>
+    r = requests.<span class="f">get</span>(url, stream=<span class="k">True</span>)
+    total = <span class="f">int</span>(r.headers.<span class="f">get</span>(<span class="s">'content-length'</span>, <span class="n">0</span>))
+    <span class="k">with</span> <span class="f">open</span>(dest, <span class="s">"wb"</span>) <span class="k">as</span> fh, tqdm(total=total, unit=<span class="s">"B"</span>, unit_scale=<span class="k">True</span>, desc=os.path.<span class="f">basename</span>(dest)) <span class="k">as</span> bar:
+        <span class="k">for</span> chunk <span class="k">in</span> r.<span class="f">iter_content</span>(<span class="n">65536</span>):
+            fh.<span class="f">write</span>(chunk); bar.<span class="f">update</span>(<span class="f">len</span>(chunk))
+
+<span class="k">for</span> fname, url <span class="k">in</span> FILES.items():
+    <span class="f">download</span>(url, <span class="s">f"</span>{RAW}<span class="s">/</span>{fname}<span class="s">"</span>)
+
+<span class="f">print</span>(<span class="s">"\nUnzipping..."</span>)
+os.<span class="f">system</span>(<span class="s">f"unzip -o 'data/raw/*.zip' -d data/raw/"</span>)</pre>
+      </div>
+
+      <div class="callout">Typical sizes: g_patent.tsv ~3GB, g_inventor_disambiguated.tsv ~1.5GB. The full pipeline covers ~8 million patents (1976–2024). Let downloads run in the background — move on to Phase 2 while waiting.</div>
+
+      <h3>Verify column names (CRITICAL — do this before Phase 2)</h3>
+      <div class="code-block">
+        <div class="code-header"><span>bash</span> — quick column check</div>
+        <pre><span class="c"># See column names for each file</span>
+head -1 data/raw/g_patent.tsv | tr '\t' '\n' | cat -n
+head -1 data/raw/g_inventor_disambiguated.tsv | tr '\t' '\n' | cat -n
+head -1 data/raw/g_assignee_disambiguated.tsv | tr '\t' '\n' | cat -n
+head -1 data/raw/g_patent_inventor.tsv | tr '\t' '\n' | cat -n
+head -1 data/raw/g_patent_assignee.tsv | tr '\t' '\n' | cat -n</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-label">
+      <div class="phase-num">PHASE 2</div>
+      <div class="phase-time">~60 min</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-title">Clean Data with Chunked pandas</div>
+      <div class="phase-desc">At millions of rows you CANNOT load the full TSV into memory at once. You must use <strong>pandas chunking</strong> — read, clean, and write in batches of 100k rows. This keeps memory use flat regardless of file size.</div>
+
+      <div class="callout danger">
+        <strong>Never do this with big files:</strong> <code>df = pd.read_csv("g_patent.tsv")</code> — this will consume all your RAM and crash. Always use <code>chunksize=</code>.
+      </div>
+
+      <h3>Script: 02_clean.py — full chunked cleaning pipeline</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Python</span> — scripts/02_clean.py</div>
+        <pre><span class="k">import</span> pandas <span class="k">as</span> pd
+<span class="k">import</span> os
+<span class="k">from</span> tqdm <span class="k">import</span> tqdm
+
+RAW   = <span class="s">"data/raw"</span>
+CLEAN = <span class="s">"data/clean"</span>
+os.makedirs(CLEAN, exist_ok=<span class="k">True</span>)
+
+CHUNK = <span class="n">100_000</span>  <span class="c"># rows per chunk — tune based on your RAM</span>
+
+
+<span class="c"># ─── HELPER: count rows quickly without loading full file ──────────────────────</span>
+<span class="k">def</span> <span class="f">count_lines</span>(path):
+    <span class="k">with</span> <span class="f">open</span>(path, <span class="s">"rb"</span>) <span class="k">as</span> f:
+        <span class="k">return</span> <span class="f">sum</span>(<span class="n">1</span> <span class="k">for</span> _ <span class="k">in</span> f) - <span class="n">1</span>  <span class="c"># subtract header</span>
+
+
+<span class="c"># ─── 1. PATENTS ────────────────────────────────────────────────────────────────</span>
+<span class="f">print</span>(<span class="s">"[1/5] Cleaning patents..."</span>)
+out_path = <span class="s">f"</span>{CLEAN}<span class="s">/clean_patents.csv"</span>
+header_written = <span class="k">False</span>
+total_rows = <span class="n">0</span>
+
+reader = pd.<span class="f">read_csv</span>(
+    <span class="s">f"</span>{RAW}<span class="s">/g_patent.tsv"</span>,
+    sep=<span class="s">"\t"</span>,
+    usecols=[<span class="s">"patent_id"</span>, <span class="s">"patent_title"</span>, <span class="s">"patent_abstract"</span>, <span class="s">"patent_date"</span>],
+    chunksize=CHUNK,
+    low_memory=<span class="k">False</span>,
+    on_bad_lines=<span class="s">"skip"</span>  <span class="c"># skip malformed rows</span>
+)
+
+<span class="k">for</span> chunk <span class="k">in</span> tqdm(reader, desc=<span class="s">"patents"</span>):
+    chunk.<span class="f">rename</span>(columns={
+        <span class="s">"patent_title"</span>: <span class="s">"title"</span>,
+        <span class="s">"patent_abstract"</span>: <span class="s">"abstract"</span>,
+        <span class="s">"patent_date"</span>: <span class="s">"filing_date"</span>
+    }, inplace=<span class="k">True</span>)
+
+    chunk.<span class="f">dropna</span>(subset=[<span class="s">"patent_id"</span>, <span class="s">"title"</span>], inplace=<span class="k">True</span>)
+    chunk.<span class="f">drop_duplicates</span>(subset=[<span class="s">"patent_id"</span>], inplace=<span class="k">True</span>)
+
+    chunk[<span class="s">"filing_date"</span>] = pd.<span class="f">to_datetime</span>(chunk[<span class="s">"filing_date"</span>], errors=<span class="s">"coerce"</span>)
+    chunk[<span class="s">"year"</span>]       = chunk[<span class="s">"filing_date"</span>].<span class="f">dt</span>.year.<span class="f">astype</span>(<span class="s">"Int64"</span>)
+    chunk[<span class="s">"filing_date"</span>] = chunk[<span class="s">"filing_date"</span>].<span class="f">dt</span>.<span class="f">strftime</span>(<span class="s">"%Y-%m-%d"</span>)
+
+    chunk[<span class="s">"title"</span>]    = chunk[<span class="s">"title"</span>].<span class="f">str</span>.<span class="f">strip</span>()
+    chunk[<span class="s">"abstract"</span>] = chunk[<span class="s">"abstract"</span>].<span class="f">fillna</span>(<span class="s">"No abstract"</span>).<span class="f">str</span>.<span class="f">strip</span>()
+
+    chunk[[<span class="s">"patent_id"</span>, <span class="s">"title"</span>, <span class="s">"abstract"</span>, <span class="s">"filing_date"</span>, <span class="s">"year"</span>]].<span class="f">to_csv</span>(
+        out_path, mode=<span class="s">"a"</span>, index=<span class="k">False</span>, header=<span class="k">not</span> header_written
+    )
+    header_written = <span class="k">True</span>
+    total_rows += <span class="f">len</span>(chunk)
+
+<span class="f">print</span>(<span class="s">f"  ✓ Patents: </span>{total_rows:,}<span class="s"> rows"</span>)
+
+
+<span class="c"># ─── 2. INVENTORS ──────────────────────────────────────────────────────────────</span>
+<span class="f">print</span>(<span class="s">"[2/5] Cleaning inventors..."</span>)
+out_path = <span class="s">f"</span>{CLEAN}<span class="s">/clean_inventors.csv"</span>
+header_written = <span class="k">False</span>; total_rows = <span class="n">0</span>
+
+reader = pd.<span class="f">read_csv</span>(
+    <span class="s">f"</span>{RAW}<span class="s">/g_inventor_disambiguated.tsv"</span>,
+    sep=<span class="s">"\t"</span>,
+    usecols=[<span class="s">"disambig_inventor_id_20"</span>, <span class="s">"disambig_inventor_name_first"</span>,
+             <span class="s">"disambig_inventor_name_last"</span>, <span class="s">"disambig_country"</span>],
+    chunksize=CHUNK, low_memory=<span class="k">False</span>, on_bad_lines=<span class="s">"skip"</span>
+)
+
+seen_ids = <span class="f">set</span>()  <span class="c"># track dedup across chunks</span>
+
+<span class="k">for</span> chunk <span class="k">in</span> tqdm(reader, desc=<span class="s">"inventors"</span>):
+    chunk.<span class="f">rename</span>(columns={
+        <span class="s">"disambig_inventor_id_20"</span>: <span class="s">"inventor_id"</span>,
+        <span class="s">"disambig_country"</span>: <span class="s">"country"</span>
+    }, inplace=<span class="k">True</span>)
+
+    chunk[<span class="s">"name"</span>] = (
+        chunk[<span class="s">"disambig_inventor_name_first"</span>].<span class="f">fillna</span>(<span class="s">""</span>) + <span class="s">" "</span> +
+        chunk[<span class="s">"disambig_inventor_name_last"</span>].<span class="f">fillna</span>(<span class="s">""</span>)
+    ).<span class="f">str</span>.<span class="f">strip</span>()
+
+    chunk = chunk[[<span class="s">"inventor_id"</span>, <span class="s">"name"</span>, <span class="s">"country"</span>]]
+    chunk.<span class="f">dropna</span>(subset=[<span class="s">"inventor_id"</span>], inplace=<span class="k">True</span>)
+    chunk[<span class="s">"country"</span>] = chunk[<span class="s">"country"</span>].<span class="f">fillna</span>(<span class="s">"Unknown"</span>)
+
+    <span class="c"># Cross-chunk dedup</span>
+    chunk = chunk[~chunk[<span class="s">"inventor_id"</span>].<span class="f">isin</span>(seen_ids)]
+    seen_ids.<span class="f">update</span>(chunk[<span class="s">"inventor_id"</span>].<span class="f">tolist</span>())
+
+    chunk.<span class="f">to_csv</span>(out_path, mode=<span class="s">"a"</span>, index=<span class="k">False</span>, header=<span class="k">not</span> header_written)
+    header_written = <span class="k">True</span>; total_rows += <span class="f">len</span>(chunk)
+
+<span class="f">print</span>(<span class="s">f"  ✓ Inventors: </span>{total_rows:,}<span class="s"> rows"</span>)
+
+
+<span class="c"># ─── 3. COMPANIES ──────────────────────────────────────────────────────────────</span>
+<span class="f">print</span>(<span class="s">"[3/5] Cleaning companies..."</span>)
+out_path = <span class="s">f"</span>{CLEAN}<span class="s">/clean_companies.csv"</span>
+header_written = <span class="k">False</span>; total_rows = <span class="n">0</span>
+seen_ids = <span class="f">set</span>()
+
+reader = pd.<span class="f">read_csv</span>(
+    <span class="s">f"</span>{RAW}<span class="s">/g_assignee_disambiguated.tsv"</span>,
+    sep=<span class="s">"\t"</span>,
+    usecols=[<span class="s">"disambig_assignee_id_20"</span>, <span class="s">"disambig_assignee_organization"</span>],
+    chunksize=CHUNK, low_memory=<span class="k">False</span>, on_bad_lines=<span class="s">"skip"</span>
+)
+
+<span class="k">for</span> chunk <span class="k">in</span> tqdm(reader, desc=<span class="s">"companies"</span>):
+    chunk.<span class="f">rename</span>(columns={
+        <span class="s">"disambig_assignee_id_20"</span>: <span class="s">"company_id"</span>,
+        <span class="s">"disambig_assignee_organization"</span>: <span class="s">"name"</span>
+    }, inplace=<span class="k">True</span>)
+    chunk.<span class="f">dropna</span>(subset=[<span class="s">"company_id"</span>, <span class="s">"name"</span>], inplace=<span class="k">True</span>)
+    chunk[<span class="s">"name"</span>] = chunk[<span class="s">"name"</span>].<span class="f">str</span>.<span class="f">strip</span>()
+    chunk = chunk[~chunk[<span class="s">"company_id"</span>].<span class="f">isin</span>(seen_ids)]
+    seen_ids.<span class="f">update</span>(chunk[<span class="s">"company_id"</span>].<span class="f">tolist</span>())
+    chunk.<span class="f">to_csv</span>(out_path, mode=<span class="s">"a"</span>, index=<span class="k">False</span>, header=<span class="k">not</span> header_written)
+    header_written = <span class="k">True</span>; total_rows += <span class="f">len</span>(chunk)
+
+<span class="f">print</span>(<span class="s">f"  ✓ Companies: </span>{total_rows:,}<span class="s"> rows"</span>)
+
+
+<span class="c"># ─── 4 & 5. RELATIONSHIPS ──────────────────────────────────────────────────────</span>
+<span class="f">print</span>(<span class="s">"[4/5] Cleaning patent-inventor links..."</span>)
+out_path = <span class="s">f"</span>{CLEAN}<span class="s">/clean_patent_inventor.csv"</span>
+header_written = <span class="k">False</span>; total_rows = <span class="n">0</span>
+
+reader = pd.<span class="f">read_csv</span>(<span class="s">f"</span>{RAW}<span class="s">/g_patent_inventor.tsv"</span>, sep=<span class="s">"\t"</span>,
+                      usecols=[<span class="s">"patent_id"</span>, <span class="s">"inventor_id"</span>],
+                      chunksize=CHUNK, low_memory=<span class="k">False</span>)
+<span class="k">for</span> chunk <span class="k">in</span> tqdm(reader, desc=<span class="s">"pat-inv"</span>):
+    chunk.<span class="f">dropna</span>(inplace=<span class="k">True</span>)
+    chunk.<span class="f">to_csv</span>(out_path, mode=<span class="s">"a"</span>, index=<span class="k">False</span>, header=<span class="k">not</span> header_written)
+    header_written = <span class="k">True</span>; total_rows += <span class="f">len</span>(chunk)
+<span class="f">print</span>(<span class="s">f"  ✓ Pat-Inv links: </span>{total_rows:,}<span class="s"> rows"</span>)
+
+<span class="f">print</span>(<span class="s">"[5/5] Cleaning patent-assignee links..."</span>)
+out_path = <span class="s">f"</span>{CLEAN}<span class="s">/clean_patent_assignee.csv"</span>
+header_written = <span class="k">False</span>; total_rows = <span class="n">0</span>
+
+reader = pd.<span class="f">read_csv</span>(<span class="s">f"</span>{RAW}<span class="s">/g_patent_assignee.tsv"</span>, sep=<span class="s">"\t"</span>,
+                      usecols=[<span class="s">"patent_id"</span>, <span class="s">"assignee_id"</span>],
+                      chunksize=CHUNK, low_memory=<span class="k">False</span>)
+<span class="k">for</span> chunk <span class="k">in</span> tqdm(reader, desc=<span class="s">"pat-asgn"</span>):
+    chunk.<span class="f">dropna</span>(inplace=<span class="k">True</span>)
+    chunk.<span class="f">rename</span>(columns={<span class="s">"assignee_id"</span>: <span class="s">"company_id"</span>}, inplace=<span class="k">True</span>)
+    chunk.<span class="f">to_csv</span>(out_path, mode=<span class="s">"a"</span>, index=<span class="k">False</span>, header=<span class="k">not</span> header_written)
+    header_written = <span class="k">True</span>; total_rows += <span class="f">len</span>(chunk)
+<span class="f">print</span>(<span class="s">f"  ✓ Pat-Assignee links: </span>{total_rows:,}<span class="s"> rows"</span>)
+
+<span class="f">print</span>(<span class="s">"\n✓ All clean CSVs written to data/clean/"</span>)</pre>
+      </div>
+
+      <div class="callout success">Key Big Data technique: by writing each chunk to CSV with <code>mode="a"</code> (append), you produce the full cleaned output while never holding more than 100k rows in memory at once.</div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase">
+    <div class="phase-label">
+      <div class="phase-num">PHASE 3</div>
+      <div class="phase-time">~50 min</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-title">PostgreSQL Schema + Bulk Loading with COPY</div>
+      <div class="phase-desc">Create the schema, then load millions of rows using PostgreSQL's <strong>COPY</strong> command — this is 50–100× faster than INSERT and is the standard production method for bulk loading.</div>
+
+      <h3>File: sql/schema.sql</h3>
+      <div class="code-block">
+        <div class="code-header"><span>SQL</span> — sql/schema.sql</div>
+        <pre><span class="sql-c">-- Drop tables in reverse dependency order</span>
+<span class="sql-k">DROP TABLE IF EXISTS</span> patent_inventor  <span class="sql-k">CASCADE</span>;
+<span class="sql-k">DROP TABLE IF EXISTS</span> patent_assignee  <span class="sql-k">CASCADE</span>;
+<span class="sql-k">DROP TABLE IF EXISTS</span> patents          <span class="sql-k">CASCADE</span>;
+<span class="sql-k">DROP TABLE IF EXISTS</span> inventors        <span class="sql-k">CASCADE</span>;
+<span class="sql-k">DROP TABLE IF EXISTS</span> companies        <span class="sql-k">CASCADE</span>;
+
+<span class="sql-c">-- Core tables</span>
+<span class="sql-k">CREATE TABLE</span> patents (
+    patent_id   TEXT        <span class="sql-k">PRIMARY KEY</span>,
+    title       TEXT        <span class="sql-k">NOT NULL</span>,
+    abstract    TEXT,
+    filing_date DATE,
+    year        SMALLINT
+);
+
+<span class="sql-k">CREATE TABLE</span> inventors (
+    inventor_id TEXT        <span class="sql-k">PRIMARY KEY</span>,
+    name        TEXT,
+    country     TEXT
+);
+
+<span class="sql-k">CREATE TABLE</span> companies (
+    company_id  TEXT        <span class="sql-k">PRIMARY KEY</span>,
+    name        TEXT
+);
+
+<span class="sql-c">-- Relationship tables (replaces single joined table for better performance)</span>
+<span class="sql-k">CREATE TABLE</span> patent_inventor (
+    patent_id   TEXT <span class="sql-k">REFERENCES</span> patents(patent_id)  <span class="sql-k">ON DELETE CASCADE</span>,
+    inventor_id TEXT <span class="sql-k">REFERENCES</span> inventors(inventor_id) <span class="sql-k">ON DELETE CASCADE</span>,
+    <span class="sql-k">PRIMARY KEY</span> (patent_id, inventor_id)
+);
+
+<span class="sql-k">CREATE TABLE</span> patent_assignee (
+    patent_id  TEXT <span class="sql-k">REFERENCES</span> patents(patent_id)  <span class="sql-k">ON DELETE CASCADE</span>,
+    company_id TEXT <span class="sql-k">REFERENCES</span> companies(company_id) <span class="sql-k">ON DELETE CASCADE</span>,
+    <span class="sql-k">PRIMARY KEY</span> (patent_id, company_id)
+);
+
+<span class="sql-c">-- Indexes for big-data query performance</span>
+<span class="sql-k">CREATE INDEX</span> idx_patents_year     <span class="sql-k">ON</span> patents(year);
+<span class="sql-k">CREATE INDEX</span> idx_inventors_country <span class="sql-k">ON</span> inventors(country);
+<span class="sql-k">CREATE INDEX</span> idx_pat_inv_inventor  <span class="sql-k">ON</span> patent_inventor(inventor_id);
+<span class="sql-k">CREATE INDEX</span> idx_pat_asgn_company  <span class="sql-k">ON</span> patent_assignee(company_id);</pre>
+      </div>
+
+      <h3>Script: 03_load_db.py — COPY-based bulk loading</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Python</span> — scripts/03_load_db.py</div>
+        <pre><span class="k">import</span> os, sys
+<span class="k">import</span> psycopg2
+sys.path.<span class="f">insert</span>(<span class="n">0</span>, <span class="s">"scripts"</span>)
+<span class="k">from</span> config <span class="k">import</span> get_conn   <span class="c"># our helper from 00_config.py</span>
+
+CLEAN = <span class="s">"data/clean"</span>
+
+<span class="c"># ─── 1. Create schema ──────────────────────────────────────────────────────────</span>
+<span class="f">print</span>(<span class="s">"Creating schema..."</span>)
+conn = <span class="f">get_conn</span>()
+<span class="k">with</span> conn, conn.<span class="f">cursor</span>() <span class="k">as</span> cur:
+    <span class="k">with</span> <span class="f">open</span>(<span class="s">"sql/schema.sql"</span>) <span class="k">as</span> f:
+        cur.<span class="f">execute</span>(f.<span class="f">read</span>())
+<span class="f">print</span>(<span class="s">"  ✓ Schema ready"</span>)
+
+
+<span class="c"># ─── 2. COPY helper — this is the fast path ────────────────────────────────────</span>
+<span class="k">def</span> <span class="f">copy_csv</span>(conn, csv_path, table, columns):
+    <span class="s">"""
+    Uses PostgreSQL COPY FROM — reads directly from CSV file.
+    This is the fastest way to load data: ~500k rows/second.
+    """</span>
+    abs_path = os.path.<span class="f">abspath</span>(csv_path)
+    <span class="f">print</span>(<span class="s">f"  COPY {table} ← {os.path.basename(csv_path)}"</span>)
+    <span class="k">with</span> conn, conn.<span class="f">cursor</span>() <span class="k">as</span> cur:
+        cols = <span class="s">", "</span>.<span class="f">join</span>(columns)
+        sql = <span class="s">f"""
+            COPY {table} ({cols})
+            FROM '{abs_path}'
+            WITH (FORMAT csv, HEADER true, NULL '', QUOTE '"')
+        """</span>
+        cur.<span class="f">execute</span>(sql)
+        <span class="f">print</span>(<span class="s">f"    ✓ </span>{cur.rowcount:,}<span class="s"> rows loaded"</span>)
+
+
+<span class="c"># ─── 3. Load all tables in dependency order ────────────────────────────────────</span>
+conn = <span class="f">get_conn</span>()
+
+<span class="f">copy_csv</span>(conn, <span class="s">f"</span>{CLEAN}<span class="s">/clean_patents.csv"</span>,
+         <span class="s">"patents"</span>, [<span class="s">"patent_id"</span>, <span class="s">"title"</span>, <span class="s">"abstract"</span>, <span class="s">"filing_date"</span>, <span class="s">"year"</span>])
+
+<span class="f">copy_csv</span>(conn, <span class="s">f"</span>{CLEAN}<span class="s">/clean_inventors.csv"</span>,
+         <span class="s">"inventors"</span>, [<span class="s">"inventor_id"</span>, <span class="s">"name"</span>, <span class="s">"country"</span>])
+
+<span class="f">copy_csv</span>(conn, <span class="s">f"</span>{CLEAN}<span class="s">/clean_companies.csv"</span>,
+         <span class="s">"companies"</span>, [<span class="s">"company_id"</span>, <span class="s">"name"</span>])
+
+<span class="f">copy_csv</span>(conn, <span class="s">f"</span>{CLEAN}<span class="s">/clean_patent_inventor.csv"</span>,
+         <span class="s">"patent_inventor"</span>, [<span class="s">"patent_id"</span>, <span class="s">"inventor_id"</span>])
+
+<span class="f">copy_csv</span>(conn, <span class="s">f"</span>{CLEAN}<span class="s">/clean_patent_assignee.csv"</span>,
+         <span class="s">"patent_assignee"</span>, [<span class="s">"patent_id"</span>, <span class="s">"company_id"</span>])
+
+conn.<span class="f">close</span>()
+
+<span class="c"># ─── 4. Quick row count verification ──────────────────────────────────────────</span>
+<span class="f">print</span>(<span class="s">"\nVerifying row counts..."</span>)
+conn = <span class="f">get_conn</span>()
+<span class="k">with</span> conn.<span class="f">cursor</span>() <span class="k">as</span> cur:
+    <span class="k">for</span> t <span class="k">in</span> [<span class="s">"patents"</span>, <span class="s">"inventors"</span>, <span class="s">"companies"</span>, <span class="s">"patent_inventor"</span>, <span class="s">"patent_assignee"</span>]:
+        cur.<span class="f">execute</span>(<span class="s">f"SELECT COUNT(*) FROM </span>{t}<span class="s">"</span>)
+        n = cur.<span class="f">fetchone</span>()[<span class="n">0</span>]
+        <span class="f">print</span>(<span class="s">f"  {t:<25} {n:>12,} rows"</span>)
+conn.<span class="f">close</span>()</pre>
+      </div>
+
+      <div class="callout info">
+        <strong>COPY vs INSERT performance:</strong><br>
+        INSERT 8M rows: ~2–3 hours<br>
+        COPY 8M rows: ~5–10 minutes<br><br>
+        COPY bypasses row-by-row parsing, logging, and constraint checking during load. It's the industry-standard method for bulk data ingestion.
+      </div>
+
+      <div class="callout">
+        <strong>If COPY fails with a permission error</strong> — PostgreSQL's COPY FROM reads as the postgres OS user, not your Python process. Fix it by using <code>copy_expert</code> instead which streams from Python:
+        <br><br>
+        <code>cur.copy_expert(f"COPY {table}({cols}) FROM STDIN WITH CSV HEADER", open(csv_path))</code>
+        <br><br>This works regardless of OS file permissions.
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase">
+    <div class="phase-label">
+      <div class="phase-num">PHASE 4</div>
+      <div class="phase-time">~60 min</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-title">All 7 SQL Queries</div>
+      <div class="phase-desc">Write all required queries in sql/queries.sql. These run against the full multi-million-row tables — the indexes we created make them fast.</div>
+
+      <h3>File: sql/queries.sql</h3>
+      <div class="code-block">
+        <div class="code-header"><span>SQL</span> — sql/queries.sql</div>
+        <pre><span class="sql-c">-- Q1: TOP INVENTORS — who has filed the most patents?</span>
+<span class="sql-k">SELECT</span>
+    inv.name,
+    inv.country,
+    <span class="sql-f">COUNT</span>(pi.patent_id) <span class="sql-k">AS</span> patent_count
+<span class="sql-k">FROM</span> inventors inv
+<span class="sql-k">JOIN</span> patent_inventor pi <span class="sql-k">ON</span> inv.inventor_id = pi.inventor_id
+<span class="sql-k">GROUP BY</span> inv.inventor_id, inv.name, inv.country
+<span class="sql-k">ORDER BY</span> patent_count <span class="sql-k">DESC</span>
+<span class="sql-k">LIMIT</span> <span class="n">20</span>;
+
+
+<span class="sql-c">-- Q2: TOP COMPANIES — which assignees own the most patents?</span>
+<span class="sql-k">SELECT</span>
+    c.name,
+    <span class="sql-f">COUNT</span>(pa.patent_id) <span class="sql-k">AS</span> patent_count
+<span class="sql-k">FROM</span> companies c
+<span class="sql-k">JOIN</span> patent_assignee pa <span class="sql-k">ON</span> c.company_id = pa.company_id
+<span class="sql-k">GROUP BY</span> c.company_id, c.name
+<span class="sql-k">ORDER BY</span> patent_count <span class="sql-k">DESC</span>
+<span class="sql-k">LIMIT</span> <span class="n">20</span>;
+
+
+<span class="sql-c">-- Q3: TOP COUNTRIES — by number of patents filed</span>
+<span class="sql-k">SELECT</span>
+    inv.country,
+    <span class="sql-f">COUNT</span>(pi.patent_id) <span class="sql-k">AS</span> patent_count,
+    <span class="sql-f">ROUND</span>(
+        <span class="sql-f">COUNT</span>(pi.patent_id) * <span class="n">100.0</span> /
+        <span class="sql-f">SUM</span>(<span class="sql-f">COUNT</span>(pi.patent_id)) <span class="sql-k">OVER</span>(), <span class="n">2</span>
+    ) <span class="sql-k">AS</span> share_pct
+<span class="sql-k">FROM</span> inventors inv
+<span class="sql-k">JOIN</span> patent_inventor pi <span class="sql-k">ON</span> inv.inventor_id = pi.inventor_id
+<span class="sql-k">WHERE</span> inv.country <span class="sql-k">NOT IN</span> (<span class="sql-s">'Unknown'</span>, <span class="sql-s">''</span>)
+<span class="sql-k">GROUP BY</span> inv.country
+<span class="sql-k">ORDER BY</span> patent_count <span class="sql-k">DESC</span>
+<span class="sql-k">LIMIT</span> <span class="n">20</span>;
+
+
+<span class="sql-c">-- Q4: TRENDS OVER TIME — annual patent filing volume</span>
+<span class="sql-k">SELECT</span>
+    year,
+    <span class="sql-f">COUNT</span>(*) <span class="sql-k">AS</span> patents_filed,
+    <span class="sql-f">SUM</span>(<span class="sql-f">COUNT</span>(*)) <span class="sql-k">OVER</span> (<span class="sql-k">ORDER BY</span> year) <span class="sql-k">AS</span> running_total
+<span class="sql-k">FROM</span> patents
+<span class="sql-k">WHERE</span> year <span class="sql-k">BETWEEN</span> <span class="n">1976</span> <span class="sql-k">AND</span> <span class="n">2024</span>
+<span class="sql-k">GROUP BY</span> year
+<span class="sql-k">ORDER BY</span> year;
+
+
+<span class="sql-c">-- Q5: JOIN QUERY — patents enriched with inventor and company</span>
+<span class="sql-k">SELECT</span>
+    p.patent_id,
+    p.title,
+    p.year,
+    inv.name        <span class="sql-k">AS</span> inventor_name,
+    inv.country,
+    c.name          <span class="sql-k">AS</span> company_name
+<span class="sql-k">FROM</span> patents p
+<span class="sql-k">JOIN</span> patent_inventor pi  <span class="sql-k">ON</span> p.patent_id = pi.patent_id
+<span class="sql-k">JOIN</span> inventors inv       <span class="sql-k">ON</span> pi.inventor_id = inv.inventor_id
+<span class="sql-k">LEFT JOIN</span> patent_assignee pa <span class="sql-k">ON</span> p.patent_id = pa.patent_id
+<span class="sql-k">LEFT JOIN</span> companies c    <span class="sql-k">ON</span> pa.company_id = c.company_id
+<span class="sql-k">WHERE</span> p.year = <span class="n">2023</span>
+<span class="sql-k">LIMIT</span> <span class="n">5000</span>;
+
+
+<span class="sql-c">-- Q6: CTE QUERY — top inventor per country (multi-step logic)</span>
+<span class="sql-k">WITH</span> inventor_totals <span class="sql-k">AS</span> (
+    <span class="sql-c">-- Step 1: count patents per inventor</span>
+    <span class="sql-k">SELECT</span>
+        inv.inventor_id,
+        inv.name,
+        inv.country,
+        <span class="sql-f">COUNT</span>(pi.patent_id) <span class="sql-k">AS</span> patent_count
+    <span class="sql-k">FROM</span> inventors inv
+    <span class="sql-k">JOIN</span> patent_inventor pi <span class="sql-k">ON</span> inv.inventor_id = pi.inventor_id
+    <span class="sql-k">WHERE</span> inv.country <span class="sql-k">NOT IN</span> (<span class="sql-s">'Unknown'</span>, <span class="sql-s">''</span>)
+    <span class="sql-k">GROUP BY</span> inv.inventor_id, inv.name, inv.country
+),
+country_leaders <span class="sql-k">AS</span> (
+    <span class="sql-c">-- Step 2: rank inventors within each country</span>
+    <span class="sql-k">SELECT</span>
+        *,
+        <span class="sql-f">ROW_NUMBER</span>() <span class="sql-k">OVER</span> (
+            <span class="sql-k">PARTITION BY</span> country
+            <span class="sql-k">ORDER BY</span> patent_count <span class="sql-k">DESC</span>
+        ) <span class="sql-k">AS</span> rn
+    <span class="sql-k">FROM</span> inventor_totals
+)
+<span class="sql-c">-- Step 3: keep only the top inventor from each country</span>
+<span class="sql-k">SELECT</span> name, country, patent_count
+<span class="sql-k">FROM</span> country_leaders
+<span class="sql-k">WHERE</span> rn = <span class="n">1</span>
+<span class="sql-k">ORDER BY</span> patent_count <span class="sql-k">DESC</span>
+<span class="sql-k">LIMIT</span> <span class="n">30</span>;
+
+
+<span class="sql-c">-- Q7: RANKING QUERY — inventors ranked with window functions</span>
+<span class="sql-k">SELECT</span>
+    inv.name,
+    inv.country,
+    <span class="sql-f">COUNT</span>(pi.patent_id)                                       <span class="sql-k">AS</span> patent_count,
+    <span class="sql-f">RANK</span>()        <span class="sql-k">OVER</span> (<span class="sql-k">ORDER BY</span> <span class="sql-f">COUNT</span>(pi.patent_id) <span class="sql-k">DESC</span>)   <span class="sql-k">AS</span> rank,
+    <span class="sql-f">DENSE_RANK</span>()  <span class="sql-k">OVER</span> (<span class="sql-k">ORDER BY</span> <span class="sql-f">COUNT</span>(pi.patent_id) <span class="sql-k">DESC</span>)   <span class="sql-k">AS</span> dense_rank,
+    <span class="sql-f">PERCENT_RANK</span>() <span class="sql-k">OVER</span> (<span class="sql-k">ORDER BY</span> <span class="sql-f">COUNT</span>(pi.patent_id) <span class="sql-k">DESC</span>)  <span class="sql-k">AS</span> pct_rank,
+    <span class="sql-f">NTILE</span>(<span class="n">10</span>)    <span class="sql-k">OVER</span> (<span class="sql-k">ORDER BY</span> <span class="sql-f">COUNT</span>(pi.patent_id) <span class="sql-k">DESC</span>)   <span class="sql-k">AS</span> decile
+<span class="sql-k">FROM</span> inventors inv
+<span class="sql-k">JOIN</span> patent_inventor pi <span class="sql-k">ON</span> inv.inventor_id = pi.inventor_id
+<span class="sql-k">GROUP BY</span> inv.inventor_id, inv.name, inv.country
+<span class="sql-k">ORDER BY</span> patent_count <span class="sql-k">DESC</span>
+<span class="sql-k">LIMIT</span> <span class="n">100</span>;</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="phase">
+    <div class="phase-label">
+      <div class="phase-num">PHASE 5</div>
+      <div class="phase-time">~60 min</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-title">Generate All Reports</div>
+      <div class="phase-desc">Run all queries via psycopg2, stream large results to CSV in chunks, produce the console report and JSON summary.</div>
+
+      <h3>Script: 05_report.py</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Python</span> — scripts/05_report.py</div>
+        <pre><span class="k">import</span> sys, os, json
+<span class="k">import</span> psycopg2
+<span class="k">import</span> psycopg2.extras
+<span class="k">import</span> pandas <span class="k">as</span> pd
+sys.path.<span class="f">insert</span>(<span class="n">0</span>, <span class="s">"scripts"</span>)
+<span class="k">from</span> config <span class="k">import</span> get_conn
+
+OUT = <span class="s">"reports"</span>
+os.makedirs(OUT, exist_ok=<span class="k">True</span>)
+conn = <span class="f">get_conn</span>()
+
+
+<span class="c"># ─── Helper: run query → pandas DataFrame ─────────────────────────────────────</span>
+<span class="k">def</span> <span class="f">query_df</span>(sql, limit=<span class="k">None</span>):
+    <span class="k">if</span> limit:
+        sql = sql.rstrip(<span class="s">";"</span>) + <span class="s">f" LIMIT {limit}"</span>
+    <span class="k">return</span> pd.<span class="f">read_sql_query</span>(sql, conn)
+
+
+<span class="c"># ─── Load results ──────────────────────────────────────────────────────────────</span>
+top_inventors = <span class="f">query_df</span>(<span class="s">"""
+    SELECT inv.name, inv.country, COUNT(pi.patent_id) AS patents
+    FROM inventors inv JOIN patent_inventor pi ON inv.inventor_id = pi.inventor_id
+    GROUP BY inv.inventor_id, inv.name, inv.country
+    ORDER BY patents DESC LIMIT 20
+"""</span>)
+
+top_companies = <span class="f">query_df</span>(<span class="s">"""
+    SELECT c.name, COUNT(pa.patent_id) AS patents
+    FROM companies c JOIN patent_assignee pa ON c.company_id = pa.company_id
+    GROUP BY c.company_id, c.name ORDER BY patents DESC LIMIT 20
+"""</span>)
+
+top_countries = <span class="f">query_df</span>(<span class="s">"""
+    SELECT inv.country,
+           COUNT(pi.patent_id) AS patents,
+           ROUND(COUNT(pi.patent_id)*100.0/SUM(COUNT(pi.patent_id)) OVER(), 2) AS share_pct
+    FROM inventors inv JOIN patent_inventor pi ON inv.inventor_id = pi.inventor_id
+    WHERE inv.country NOT IN ('Unknown','')
+    GROUP BY inv.country ORDER BY patents DESC LIMIT 20
+"""</span>)
+
+year_trends = <span class="f">query_df</span>(<span class="s">"""
+    SELECT year, COUNT(*) AS patents_filed
+    FROM patents WHERE year BETWEEN 1976 AND 2024
+    GROUP BY year ORDER BY year
+"""</span>)
+
+total_patents = pd.<span class="f">read_sql_query</span>(<span class="s">"SELECT COUNT(*) AS n FROM patents"</span>, conn).iloc[<span class="n">0</span>][<span class="s">"n"</span>]
+conn.<span class="f">close</span>()
+
+
+<span class="c"># ─── A. Console Report ─────────────────────────────────────────────────────────</span>
+W = <span class="n">60</span>
+<span class="f">print</span>(<span class="s">"\n"</span> + <span class="s">"═"</span>*W)
+<span class="f">print</span>(<span class="s">"       GLOBAL PATENT INTELLIGENCE REPORT"</span>)
+<span class="f">print</span>(<span class="s">"═"</span>*W)
+<span class="f">print</span>(<span class="s">f"\n  Total Patents in Database : {total_patents:>12,}"</span>)
+<span class="f">print</span>(<span class="s">f"  Unique Inventors         : {len(top_inventors):>12,}"</span>)
+
+<span class="f">print</span>(<span class="s">"\n  ── TOP 10 INVENTORS ──────────────────────"</span>)
+<span class="k">for</span> i, r <span class="k">in</span> top_inventors.head(<span class="n">10</span>).<span class="f">iterrows</span>():
+    <span class="f">print</span>(<span class="s">f"  {i+1:>2}. {str(r['name']):<28} {str(r['country']):<5} {r['patents']:>7,}"</span>)
+
+<span class="f">print</span>(<span class="s">"\n  ── TOP 10 COMPANIES ──────────────────────"</span>)
+<span class="k">for</span> i, r <span class="k">in</span> top_companies.head(<span class="n">10</span>).<span class="f">iterrows</span>():
+    <span class="f">print</span>(<span class="s">f"  {i+1:>2}. {str(r['name']):<32}  {r['patents']:>7,}"</span>)
+
+<span class="f">print</span>(<span class="s">"\n  ── TOP 10 COUNTRIES ──────────────────────"</span>)
+<span class="k">for</span> i, r <span class="k">in</span> top_countries.head(<span class="n">10</span>).<span class="f">iterrows</span>():
+    <span class="f">print</span>(<span class="s">f"  {i+1:>2}. {str(r['country']):<8} {r['patents']:>9,}  ({r['share_pct']}%)"</span>)
+
+<span class="f">print</span>(<span class="s">"\n  ── PATENT TRENDS (last 15 years) ─────────"</span>)
+max_p = year_trends[<span class="s">"patents_filed"</span>].<span class="f">max</span>()
+<span class="k">for</span> _, r <span class="k">in</span> year_trends.tail(<span class="n">15</span>).<span class="f">iterrows</span>():
+    bar_len = <span class="f">int</span>(r[<span class="s">"patents_filed"</span>] / max_p * <span class="n">30</span>)
+    <span class="f">print</span>(<span class="s">f"  {int(r['year'])} │ {'█'*bar_len:<30} {r['patents_filed']:>8,}"</span>)
+
+<span class="f">print</span>(<span class="s">"\n"</span> + <span class="s">"═"</span>*W + <span class="s">"\n"</span>)
+
+
+<span class="c"># ─── B. CSV Exports ────────────────────────────────────────────────────────────</span>
+top_inventors.<span class="f">to_csv</span>(<span class="s">f"</span>{OUT}<span class="s">/top_inventors.csv"</span>,   index=<span class="k">False</span>)
+top_companies.<span class="f">to_csv</span>(<span class="s">f"</span>{OUT}<span class="s">/top_companies.csv"</span>,   index=<span class="k">False</span>)
+top_countries.<span class="f">to_csv</span>(<span class="s">f"</span>{OUT}<span class="s">/country_trends.csv"</span>,  index=<span class="k">False</span>)
+year_trends.<span class="f">to_csv</span>(<span class="s">f"</span>{OUT}<span class="s">/year_trends.csv"</span>,       index=<span class="k">False</span>)
+<span class="f">print</span>(<span class="s">"✓ CSVs saved → reports/"</span>)
+
+
+<span class="c"># ─── C. JSON Report ────────────────────────────────────────────────────────────</span>
+report = {
+    <span class="s">"total_patents"</span>: <span class="f">int</span>(total_patents),
+    <span class="s">"top_inventors"</span>: top_inventors.head(<span class="n">10</span>).<span class="f">to_dict</span>(orient=<span class="s">"records"</span>),
+    <span class="s">"top_companies"</span>: top_companies.head(<span class="n">10</span>).<span class="f">to_dict</span>(orient=<span class="s">"records"</span>),
+    <span class="s">"top_countries"</span>: top_countries.head(<span class="n">10</span>).<span class="f">to_dict</span>(orient=<span class="s">"records"</span>),
+    <span class="s">"year_trends"</span>: year_trends.<span class="f">to_dict</span>(orient=<span class="s">"records"</span>),
+}
+<span class="k">with</span> <span class="f">open</span>(<span class="s">f"</span>{OUT}<span class="s">/patent_report.json"</span>, <span class="s">"w"</span>) <span class="k">as</span> f:
+    json.<span class="f">dump</span>(report, f, indent=<span class="n">2</span>, default=<span class="f">str</span>)
+<span class="f">print</span>(<span class="s">"✓ JSON saved → reports/patent_report.json"</span>)</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 6 -->
+  <div class="phase">
+    <div class="phase-label">
+      <div class="phase-num">PHASE 6</div>
+      <div class="phase-time">~25 min</div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-title">GitHub — Final Push</div>
+
+      <h3>File: .gitignore</h3>
+      <div class="code-block">
+        <div class="code-header"><span>text</span> — .gitignore</div>
+        <pre>venv/
+__pycache__/
+*.pyc
+.env                <span class="c"># DB credentials — NEVER commit</span>
+data/raw/           <span class="c"># GBs of raw files</span>
+data/clean/         <span class="c"># regenerated by running scripts</span>
+*.tsv
+*.zip</pre>
+      </div>
+
+      <h3>README.md — reproduction instructions</h3>
+      <div class="code-block">
+        <div class="code-header"><span>markdown</span></div>
+        <pre># Global Patent Intelligence Pipeline
+
+## Requirements
+- PostgreSQL 14+
+- Python 3.9+
+
+## Setup
+```bash
+git clone https://github.com/YOURNAME/patent_pipeline
+cd patent_pipeline
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # fill in your DB credentials
+```
+
+## Database Setup
+```bash
+sudo -u postgres psql -c "CREATE USER patent_user WITH PASSWORD 'patent_pass';"
+sudo -u postgres psql -c "CREATE DATABASE patent_db OWNER patent_user;"
+```
+
+## Download Data
+Download these 5 files from patentsview.org into data/raw/:
+g_patent.tsv, g_inventor_disambiguated.tsv,
+g_assignee_disambiguated.tsv, g_patent_inventor.tsv, g_patent_assignee.tsv
+
+## Run the Full Pipeline
+```bash
+python scripts/02_clean.py      # clean + chunk TSVs → CSVs
+python scripts/03_load_db.py    # COPY into PostgreSQL
+python scripts/05_report.py     # generate all reports
+```
+
+## Outputs
+- reports/top_inventors.csv
+- reports/top_companies.csv
+- reports/country_trends.csv
+- reports/patent_report.json</pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header"><span>bash</span> — final push</div>
+        <pre>git add scripts/ sql/ reports/ requirements.txt README.md .gitignore
+git commit -m "complete big-data patent pipeline with PostgreSQL"
+git push origin main</pre>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- Troubleshooting -->
+  <div style="margin-bottom: 48px;">
+    <div style="font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:#fff; margin-bottom:20px;">Common Errors & Fixes</div>
+    <div class="grid2">
+      <div class="step">
+        <h4>❌ psycopg2 install fails</h4>
+        <p>Use the binary version: <code>pip install psycopg2-binary</code>. If still failing on Linux, run <code>sudo apt install libpq-dev</code> first.</p>
+      </div>
+      <div class="step">
+        <h4>❌ COPY permission denied</h4>
+        <p>PostgreSQL's server process can't read your user's files. Use <code>copy_expert</code> instead which streams data from Python's file handle — no file system permission needed.</p>
+      </div>
+      <div class="step">
+        <h4>❌ Column name mismatch</h4>
+        <p>Run <code>head -1 data/raw/g_patent.tsv | tr '\t' '\n' | cat -n</code> to see the exact column names and update <code>usecols=</code> in 02_clean.py to match.</p>
+      </div>
+      <div class="step">
+        <h4>❌ FK violation on COPY</h4>
+        <p>A patent_id in the relationship table doesn't exist in patents. This means your clean_patents.csv was limited (nrows) but the relationship file is full. Either remove the nrows limit or load relationships <em>after</em> filtering to only patent IDs that exist.</p>
+      </div>
+      <div class="step">
+        <h4>❌ MemoryError during cleaning</h4>
+        <p>Reduce the chunk size from 100k to 50k: change <code>CHUNK = 50_000</code> in 02_clean.py. The chunked approach should prevent this, but very low RAM machines may need smaller chunks.</p>
+      </div>
+      <div class="step">
+        <h4>❌ Queries timeout / very slow</h4>
+        <p>Check that indexes exist: <code>SELECT indexname FROM pg_indexes WHERE tablename='patent_inventor';</code> If missing, run the CREATE INDEX lines from schema.sql manually in psql.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Time budget -->
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:28px; margin-bottom:48px;">
+    <div style="font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:#fff; margin-bottom:20px;">⏱ 5-Hour Budget</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px;">
+      <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;"><div style="font-size:20px; font-weight:700; color:var(--accent);">25m</div><div style="font-size:11px; color:var(--muted); margin-top:4px;">Phase 0<br>Setup + PG</div></div>
+      <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;"><div style="font-size:20px; font-weight:700; color:var(--accent);">40m</div><div style="font-size:11px; color:var(--muted); margin-top:4px;">Phase 1<br>Download</div></div>
+      <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;"><div style="font-size:20px; font-weight:700; color:var(--accent);">60m</div><div style="font-size:11px; color:var(--muted); margin-top:4px;">Phase 2<br>Chunked Clean</div></div>
+      <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;"><div style="font-size:20px; font-weight:700; color:var(--accent);">50m</div><div style="font-size:11px; color:var(--muted); margin-top:4px;">Phase 3<br>Schema + COPY</div></div>
+      <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;"><div style="font-size:20px; font-weight:700; color:var(--accent);">60m</div><div style="font-size:11px; color:var(--muted); margin-top:4px;">Phase 4<br>SQL Queries</div></div>
+      <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;"><div style="font-size:20px; font-weight:700; color:var(--accent);">60m</div><div style="font-size:11px; color:var(--muted); margin-top:4px;">Phase 5<br>Reports</div></div>
+      <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;"><div style="font-size:20px; font-weight:700; color:var(--accent);">25m</div><div style="font-size:11px; color:var(--muted); margin-top:4px;">Phase 6<br>GitHub</div></div>
+    </div>
+    <div style="margin-top:16px; font-size:12px; color:var(--muted);">Note: Download time (Phase 1) overlaps with other phases — start it first and work on Phase 0 setup while files download.</div>
+  </div>
+
+</div>
+
+<footer>
+  Global Patent Intelligence Pipeline · Big Data Engineering Guide v2 · PostgreSQL Edition
+</footer>
+</body>
+</html>
